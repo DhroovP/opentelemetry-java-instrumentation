@@ -599,6 +599,10 @@ instrumentation/development:
       connection_telemetry:
         # Enables the creation of Connect and DNS spans.
         enabled: false
+    resilience4j_circuitbreaker:
+      # Enable the capture of experimental Resilience4j CircuitBreaker span attributes on
+      # protected-call spans.
+      experimental_span_attributes/development: false
     rocketmq_client:
       # Enables capturing experimental span attributes `messaging.rocketmq.message.tag`,
       # `messaging.rocketmq.broker_address`, `messaging.rocketmq.send_result`,

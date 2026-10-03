@@ -1644,6 +1644,13 @@ definitions:
       type: boolean
       deprecated: true
       replaced_by: otel.instrumentation.redisson.query-sanitization.enabled
+    otel.instrumentation.resilience4j-circuitbreaker.experimental-span-attributes:
+      name: otel.instrumentation.resilience4j-circuitbreaker.experimental-span-attributes
+      declarative_name: java.resilience4j_circuitbreaker.experimental_span_attributes/development
+      description: |
+        Enable the capture of experimental Resilience4j CircuitBreaker span attributes on protected-call spans.
+      type: boolean
+      default: false
     otel.instrumentation.resources.experimental.process-command-attributes.enabled:
       name: otel.instrumentation.resources.experimental.process-command-attributes.enabled
       description: |
@@ -10402,6 +10409,8 @@ libraries:
         type: LONG
       - name: server.address
         type: STRING
+      - name: server.port
+        type: LONG
 - name: elasticsearch-transport-6.0
   display_name: Elasticsearch Transport Client
   description: |
@@ -10491,6 +10500,8 @@ libraries:
         type: LONG
       - name: server.address
         type: STRING
+      - name: server.port
+        type: LONG
 - name: executors
   display_name: Java Executors
   description: |
@@ -11843,8 +11854,8 @@ libraries:
   has_javaagent: true
   javaagent_target_versions:
   - io.javalin:javalin:[7.0.0,)
-- name: jaxrs-1.0
-  display_name: JAX-RS 1.x
+- name: jaxrs-1.0-annotations
+  display_name: JAX-RS 1.x annotations
   description: |
     This instrumentation enriches HTTP server spans with route information and enables controller spans for JAX-RS annotated methods (controller spans are disabled by default).
   library_link: https://javaee.github.io/javaee-spec/javadocs/javax/ws/rs/package-summary.html
@@ -11852,9 +11863,9 @@ libraries:
   features:
   - HTTP_ROUTE
   - CONTROLLER_SPANS
-  source_path: instrumentation/jaxrs/jaxrs-1.0
+  source_path: instrumentation/jaxrs/jaxrs-1.0-annotations
   scope:
-    name: io.opentelemetry.jaxrs-1.0
+    name: io.opentelemetry.jaxrs-1.0-annotations
   has_javaagent: true
   javaagent_target_versions:
   - javax.ws.rs:jsr311-api:[0.5,)
@@ -11862,13 +11873,11 @@ libraries:
   - common.controller-telemetry.enabled
   - common.deprecated-controller-telemetry.enabled
   telemetry:
-  - when: otel.instrumentation.common.controller-telemetry.enabled=true
+  - when: otel.instrumentation.common.controller-telemetry.enabled=true,otel.instrumentation.common.v3-preview=true
     spans:
     - span_kind: INTERNAL
       attributes:
-      - name: code.function
-        type: STRING
-      - name: code.namespace
+      - name: code.function.name
         type: STRING
 - name: jaxrs-2.0-annotations
   display_name: JAX-RS 2.x
@@ -18065,6 +18074,36 @@ libraries:
     - db.client.connection.idle.min-fa38020f
     - db.client.connection.limit-12eb182f
     - db.client.connection.pending_requests-68c56df0
+- name: resilience4j-circuitbreaker-2.0
+  display_name: Resilience4j CircuitBreaker
+  description: This instrumentation emits spans for Resilience4j CircuitBreaker protected
+    calls.
+  library_link: https://resilience4j.readme.io/docs/circuitbreaker
+  disabled_by_default: true
+  source_path: instrumentation/resilience4j-circuitbreaker-2.0
+  minimum_java_version: 17
+  scope:
+    name: io.opentelemetry.resilience4j-circuitbreaker-2.0
+  has_javaagent: true
+  javaagent_target_versions:
+  - io.github.resilience4j:resilience4j-circuitbreaker:[2.0.0,)
+  configuration_refs:
+  - otel.instrumentation.resilience4j-circuitbreaker.experimental-span-attributes
+  telemetry:
+  - when: otel.instrumentation.resilience4j-circuitbreaker.enabled=true
+    spans:
+    - span_kind: INTERNAL
+      attributes: []
+  - when: otel.instrumentation.resilience4j-circuitbreaker.enabled=true,otel.instrumentation.resilience4j-circuitbreaker.experimental-span-attributes=true
+    spans:
+    - span_kind: INTERNAL
+      attributes:
+      - name: resilience4j.circuit_breaker.name
+        type: STRING
+      - name: resilience4j.circuit_breaker.outcome
+        type: STRING
+      - name: resilience4j.circuit_breaker.state
+        type: STRING
 - name: resources
   display_name: Resource Detectors
   description: |
